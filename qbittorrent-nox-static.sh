@@ -277,7 +277,7 @@ _set_default_values() {
 	if [[ "${what_id}" =~ ^(alpine)$ ]]; then
 		delete+=("glibc")
 		[[ -z "${qbt_cache_dir}" ]] && delete_pkgs+=("coreutils" "gpg")
-		qbt_required_pkgs=("autoconf" "automake" "bash" "bash-completion" "build-base" "coreutils" "curl" "git" "gpg" "pkgconf" "libtool" "perl" "python${qbt_python_version}" "python${qbt_python_version}-dev" "py${qbt_python_version}-numpy" "py${qbt_python_version}-numpy-dev" "linux-headers" "ttf-freefont" "graphviz" "cmake" "re2c" "upx")
+		qbt_required_pkgs=("autoconf" "automake" "bash" "bash-completion" "build-base" "coreutils" "curl" "git" "gpg" "pkgconf" "libtool" "perl" "python${qbt_python_version}" "python${qbt_python_version}-dev" "py${qbt_python_version}-numpy" "py${qbt_python_version}-numpy-dev" "linux-headers" "ttf-freefont" "graphviz" "cmake" "re2c")
 	fi
 
 	# if debian based then set the required packages array
