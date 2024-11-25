@@ -8,7 +8,9 @@
 #
 # @author - userdocs
 #
-# @contributors IceCodeNew Stanislas boredazfcuk AdvenT. guillaumedsde inochisa
+# @contributors IceCodeNew Stanislas boredazfcuk AdvenT. guillaumedsde inochisa angristan xNihil0 Jercik
+#
+# https://github.com/userdocs/qbittorrent-nox-static/graphs/contributors
 #
 # @credits - https://gist.github.com/notsure2 https://github.com/c0re100/qBittorrent-Enhanced-Edition
 #
@@ -17,7 +19,7 @@
 #################################################################################################################################################
 # Script version = Major minor patch
 #################################################################################################################################################
-script_version="2.0.9"
+script_version="2.0.11"
 #################################################################################################################################################
 # Set some script features - https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
 #################################################################################################################################################
@@ -131,7 +133,7 @@ _set_default_values() {
 	export DEBIAN_FRONTEND="noninteractive" && TZ="Europe/London"
 
 	# The default build configuration is qmake + qt5, qbt_build_tool=cmake or -c will make qt6 and cmake default
-	qbt_build_tool="${qbt_build_tool:-qmake}"
+	qbt_build_tool="${qbt_build_tool:-cmake}"
 
 	# Default to empty to use host native build tools. This way we can build on native arch on a supported OS and skip cross build toolchains
 	qbt_cross_name="${qbt_cross_name:-default}"
@@ -811,7 +813,7 @@ _set_module_urls() {
 		elif [[ "${os_version_codename}" =~ ^(bookworm|jammy)$ ]]; then
 			github_tag[glibc]="glibc-2.38"
 		else # "$(_git_git ls-remote -q -t --refs https://sourceware.org/git/glibc.git | awk '/\/tags\/glibc-[0-9]\.[0-9]{2}$/{sub("refs/tags/", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n 1)"
-			github_tag[glibc]="glibc-2.39"
+			github_tag[glibc]="glibc-2.40"
 		fi
 	else
 		github_tag[ninja]="$(_git_git ls-remote -q -t --refs "${github_url[ninja]}" | awk '/v/{sub("refs/tags/", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n 1)"
@@ -1580,7 +1582,7 @@ _multi_arch() {
 					case "${qbt_cross_target}" in
 						alpine)
 							qbt_cross_host="riscv64-linux-musl"
-							qbt_zlib_arch="mips64"
+							qbt_zlib_arch="riscv64"
 							;;&
 						debian)
 							printf '\n%b\n\n' " ${unicode_red_circle} The arch ${color_yellow_light}${qbt_cross_name}${color_end} can only be cross built on and Alpine OS Host"
@@ -1747,7 +1749,7 @@ _release_info() {
 		>
 		> Qbittorrent v5 won't support qmake (Qt5) builds so Qt6 (cmake) will become default and Qt5 builds will no longer be released.
 		>
-		> Binary builds are stripped - See https://userdocs.github.io/qbittorrent-nox-static/#/debugging
+		> Binary builds are stripped - See https://userdocs.github.io/qbittorrent-nox-static/debugging/
 	RELEASE_INFO
 
 	return
@@ -2086,7 +2088,7 @@ while (("${#}")); do
 			printf '%b\n' " ${text_dim}${color_magenta_light}qtbase${color_end} ${text_dim}-------------${color_end} ${text_dim}${color_red_light}required${color_end} ${text_dim}Build qtbase locally${color_end}"
 			printf '%b\n' " ${text_dim}${color_magenta_light}qttools${color_end} ${text_dim}------------${color_end} ${text_dim}${color_red_light}required${color_end} ${text_dim}Build qttools locally${color_end}"
 			printf '%b\n' " ${text_dim}${color_magenta_light}qbittorrent${color_end} ${text_dim}--------${color_end} ${text_dim}${color_red_light}required${color_end} ${text_dim}Build qbittorrent locally${color_end}"
-			printf '\n%b\n' " ${text_bold}${text_underlined}env help - supported exportable evironment variables${color_end}"
+			printf '\n%b\n' " ${text_bold}${text_underlined}env help - supported exportable environment variables${color_end}"
 			printf '\n%b\n' " ${text_dim}${color_magenta_light}export qbt_libtorrent_version=\"\"${color_end} ${text_dim}--------${color_end} ${text_dim}${color_red_light}options${color_end} ${text_dim}1.2 - 2.0${color_end}"
 			printf '%b\n' " ${text_dim}${color_magenta_light}export qbt_qt_version=\"\"${color_end} ${text_dim}----------------${color_end} ${text_dim}${color_red_light}options${color_end} ${text_dim}5 - 5.15 - 6 - 6.2 - 6.3 and so on${color_end}"
 			printf '%b\n' " ${text_dim}${color_magenta_light}export qbt_build_tool=\"\"${color_end} ${text_dim}----------------${color_end} ${text_dim}${color_red_light}options${color_end} ${text_dim}qmake - cmake${color_end}"
@@ -2413,6 +2415,7 @@ _zlib() {
 			-D CMAKE_PREFIX_PATH="${qbt_install_dir}" \
 			-D BUILD_SHARED_LIBS=OFF \
 			-D ZLIB_COMPAT=ON \
+			-D WITH_GTEST=OFF \
 			-D CMAKE_INSTALL_PREFIX="${qbt_install_dir}" |& _tee -a "${qbt_install_dir}/logs/${app_name}.log"
 		cmake --build build |& _tee -a "${qbt_install_dir}/logs/${app_name}.log"
 		_post_command build
@@ -2469,7 +2472,7 @@ _icu() {
 #######################################################################################################################################################
 # shellcheck disable=SC2317
 _openssl() {
-	"${multi_openssl[@]}" --prefix="${qbt_install_dir}" --libdir="${lib_dir##*/}" --openssldir="/etc/ssl" threads no-shared no-dso no-comp CXXFLAGS="${CXXFLAGS}" CPPFLAGS="${CPPFLAGS}" LDFLAGS="${LDFLAGS}" |& _tee "${qbt_install_dir}/logs/${app_name}.log"
+	"${multi_openssl[@]}" --prefix="${qbt_install_dir}" --libdir="${lib_dir##*/}" --openssldir="/etc/ssl" threads no-shared no-dso no-comp no-docs CXXFLAGS="${CXXFLAGS}" CPPFLAGS="${CPPFLAGS}" LDFLAGS="${LDFLAGS}" |& _tee "${qbt_install_dir}/logs/${app_name}.log"
 	make -j"$(nproc)" |& _tee -a "${qbt_install_dir}/logs/${app_name}.log"
 	_post_command build
 	make install_sw |& _tee -a "${qbt_install_dir}/logs/${app_name}.log"
